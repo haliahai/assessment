@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: warehouse-service
+  main:
+    web-application-type: none
+    keep-alive: true
+
+warehouse:
+  id: ${WAREHOUSE_ID:warehouse-1}
+  host: 0.0.0.0
+  ports:
+    temperature: ${TEMPERATURE_PORT:3344}
+    humidity: ${HUMIDITY_PORT:3355}
+  buffer-size: 1024
+  max-in-flight: 256
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    topic: ${MEASUREMENTS_TOPIC:warehouse.measurements}
+
+logging:
+  level:
+    org.apache.kafka: WARN

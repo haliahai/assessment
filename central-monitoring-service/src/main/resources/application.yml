@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: central-monitoring-service
+  main:
+    web-application-type: none
+    # no web server and all threads are daemons, so the JVM would exit right away
+    keep-alive: true
+
+monitoring:
+  thresholds:
+    temperature: ${TEMPERATURE_THRESHOLD:35}
+    humidity: ${HUMIDITY_THRESHOLD:50}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    topic: ${MEASUREMENTS_TOPIC:warehouse.measurements}
+    group-id: central-monitoring
+    auto-offset-reset: earliest
+    session-timeout: 10s
+
+logging:
+  level:
+    org.apache.kafka: WARN
