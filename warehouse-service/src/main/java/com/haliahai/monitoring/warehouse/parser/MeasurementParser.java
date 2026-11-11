@@ -1,5 +1,6 @@
 package com.haliahai.monitoring.warehouse.parser;
 
+import com.haliahai.monitoring.common.Measurement;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -20,6 +21,8 @@ public final class MeasurementParser {
     private static final String VALUE_KEY = "value";
     private static final Set<String> EXPECTED_KEYS = Set.of(SENSOR_ID_KEY, VALUE_KEY);
     private static final Pattern SENSOR_ID = Pattern.compile("[A-Za-z0-9_.-]{1,64}");
+    private static final Pattern VALUE = Pattern.compile(
+            "[+-]?\\d{1," + Measurement.MAX_INTEGER_DIGITS + "}(\\.\\d{1," + Measurement.MAX_FRACTION_DIGITS + "})?");
     private static final int PREVIEW_CHARS = 64;
 
     public SensorReading parse(byte[] payload) {
@@ -77,12 +80,11 @@ public final class MeasurementParser {
     }
 
     private static BigDecimal value(String raw, byte[] payload) {
-        try {
-            // also rejects NaN / Infinity
-            return new BigDecimal(raw);
-        } catch (NumberFormatException e) {
-            throw new MalformedMeasurementException("value is not a number: '" + raw + "'", preview(payload), e);
+        if (!VALUE.matcher(raw).matches()) {
+            throw malformed("value is not a plain decimal (max " + Measurement.MAX_INTEGER_DIGITS + " integer and "
+                    + Measurement.MAX_FRACTION_DIGITS + " fraction digits): '" + raw + "'", payload);
         }
+        return new BigDecimal(raw);
     }
 
     private static MalformedMeasurementException malformed(String reason, byte[] payload) {

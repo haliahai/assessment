@@ -18,6 +18,7 @@ class MeasurementParserTest {
             "'  sensor_id = h1 ;value=40  ' | h1 | 40",
             "sensor_id=t1; value=-12.5      | t1 | -12.5",
             "value=35.75; sensor_id=t1      | t1 | 35.75",
+            "sensor_id=t1; value=+999999999.123456 | t1 | 999999999.123456",
     })
     void parsesValidPayload(String payload, String sensorId, String value) {
         var reading = parser.parse(payload.getBytes(UTF_8));
@@ -38,9 +39,16 @@ class MeasurementParserTest {
             "sensor=t1; value=30                  | unexpected key 'sensor'",
             "sensor_id=t1; sensor_id=t2; value=30 | duplicate key 'sensor_id'",
             "hello world                          | field without '='",
-            "sensor_id=t1; value=abc              | value is not a number",
-            "sensor_id=t1; value=NaN              | value is not a number",
-            "sensor_id=t1; value=Infinity         | value is not a number",
+            "sensor_id=t1; value=abc              | value is not a plain decimal",
+            "sensor_id=t1; value=NaN              | value is not a plain decimal",
+            "sensor_id=t1; value=Infinity         | value is not a plain decimal",
+            "sensor_id=t1; value=1e999999999      | value is not a plain decimal",
+            "sensor_id=t1; value=1E3              | value is not a plain decimal",
+            "sensor_id=t1; value=3.5e-999999999   | value is not a plain decimal",
+            "sensor_id=t1; value=1234567890       | value is not a plain decimal",
+            "sensor_id=t1; value=1.1234567        | value is not a plain decimal",
+            "sensor_id=t1; value=.5               | value is not a plain decimal",
+            "sensor_id=t1; value=                 | value is not a plain decimal",
     })
     void rejectsMalformedPayload(String payload, String reason) {
         assertThatThrownBy(() -> parser.parse(payload.getBytes(UTF_8)))
